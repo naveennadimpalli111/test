@@ -63,6 +63,6 @@ public class FastRecordFilter {
       if (base == null) base = List.of(rn); else base = base.stream().filter(r -> r == rn).collect(Collectors.toList());
     }
     if (base == null) { base = new ArrayList<>(); for (int r=1; r<=getRecordCount(); r++) base.add(r); }
-    return base;
+    return base.stream().distinct().collect(Collectors.toList());
   }
 }

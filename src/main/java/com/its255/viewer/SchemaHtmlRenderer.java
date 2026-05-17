@@ -158,7 +158,7 @@ public class SchemaHtmlRenderer {
 			}
 		}
 
-		sb.append("</tr></thead><tbody>");
+		sb.append("</tr></thead><tbody id='horizontalTbody'>");
 
 		if (filteredRecords == null || filteredRecords.isEmpty()) {
 			sb.append("<tr>").append("<td colspan='10'>No data found</td>").append("</tr>");
@@ -242,7 +242,7 @@ public class SchemaHtmlRenderer {
 			}
 		}
 
-		sb.append("</tbody></table></div>");
+		sb.append("</tbody></table>");
 
 		return sb.toString();
 	}

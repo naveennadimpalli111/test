@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -320,42 +321,8 @@
   <form th:action="@{/viewer/save}" method="post">
   <input type="hidden" id="viewMode" name="viewMode" value="vertical">
   <div id="resultsTop"></div>
- <!--  <div class="record-container">
-    <div id="verticalView" th:style="${viewMode=='horizontal'}?'display:none;':'display:block;'"style="smax-height:700px;overflow:auto;"></div>
-     <div id="verticalTableContainer" th:utext="${verticalHtml}"></div>
-      <div id="loadingMore" style="display:none;padding:10px;text-align:center;">Loading More Records...
-     </div>
-      </div> -->
- <!-- ✅ VERTICAL -->
-<!--  <div class="record-container">
-<div id="verticalView"
-     th:style="${viewMode=='horizontal'}?'display:none;':'display:block;'" style="max-height:700px;overflow:auto;">
 
-    <div id="verticalTableContainer"
-         th:utext="${verticalHtml}">
-    </div>
-        <div id="loadMoreVertical" style="display:none;text-align:center;">
-            Load More
-        </div>
-    </div>
-
-✅ HORIZONTAL
-<div id="horizontalView"
-     th:style="${viewMode=='horizontal'}?'display:block;':'display:none;'" style="max-height:700px;overflow:auto;">
-
-    <div id="horizontalContent"
-         th:utext="${horizontalHtml}">
-    </div>
-
-        <div id="loadMoreHorizontal"
-                style="display:none;text-align:center;">
-            Load More
-        </div>
-    </div>
-
-</div>
- -->
- <div class="record-container">
+  <div class="record-container">
 
     <!-- VERTICAL -->
     <div id="verticalView"
@@ -385,17 +352,7 @@
         </div>
     </div>
 
-</div>
-  <div id="horizontalView"
-       th:style="${viewMode=='horizontal'}?'display:block;':'display:none;'"
-       th:utext="${horizontalHtml}">
   </div>
-</div>
-     <div id="horizontalView" 
-     th:style="${viewMode=='horizontal'}?'display:block;':'display:none;'"
-     th:utext="${horizontalHtml}" >
-     </div>
-      </div>
 
  <a class="btn btn-primary mt-2" th:if="${editMode!=true}"
  th:href="@{/viewer/edit}">Edit</a>
