@@ -302,6 +302,24 @@ fileInput.classList.remove('disabled');
         sessionStorage.removeItem(KEY('recordTypeCode'));
       } catch (_) {}
     }
+    
+    //
+    /*if record type is not select show vertical view hide Horizontal view*/
+function toggleViewBasedOnRecordType(){
+	const recordType=document.getElementById("recordTypeCode").value;
+	const verticalView=document.getElementById("verticalView");
+	const horizontalView=document.getElementById("horizontalView");
+	if(recordType && recordType.trim()!==""){
+		verticalView.style.display="none";
+		horizontalView.style.display="block";
+	} else {
+		verticalView.style.display="block";
+		horizontalView.style.display="none";
+		
+	}
+}
+    
+    //
 
     // ---- SessionStorage: persist & restore search fields; restart-aware; Clear buttons ----
     (function initSessionStoragePersistence() {

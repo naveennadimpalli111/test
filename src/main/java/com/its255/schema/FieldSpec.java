@@ -7,6 +7,7 @@ public final class FieldSpec {
     public final FieldType type;
     public final int scale;         // decimal places for packed/zoned; else 0
     
+    
     public FieldSpec(String name, int start1Based, int lengthBytes, FieldType type) {
         this(name, start1Based, lengthBytes, type, 0);
     }

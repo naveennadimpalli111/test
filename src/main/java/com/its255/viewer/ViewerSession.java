@@ -24,6 +24,8 @@ public class ViewerSession implements AutoCloseable {
     public String transactionType;
     public Path sessionDir; // per-session temp directory
     public  boolean editMode=false;
+    public String selectedRecordType;
+    
     
 
     public boolean hasFile() {

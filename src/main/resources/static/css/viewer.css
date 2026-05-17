@@ -58,11 +58,11 @@
 
     /* ---------- CHANGE: Sticky table headers (robust) ---------- */
     /* NOTE: sticky works against the document scroll (or the nearest scrolling ancestor).
-       We don’t wrap the table in an overflowed scroller; we stick to the page scroll. */
+       We donâ€™t wrap the table in an overflowed scroller; we stick to the page scroll. */
     .record-container { position: relative; }
     .record-container table { border-collapse: separate; border-spacing: 0; width: 100%; }
 
-    /* We’ll add .sticky-head to <thead> in JS (or use existing thead).
+    /* Weâ€™ll add .sticky-head to <thead> in JS (or use existing thead).
        Sticky only needs to be applied to the header cells. */
     .sticky-head th, .sticky-head td {
       position: sticky;
@@ -85,7 +85,7 @@
 }
 
 .txn-hint.txn-hint-error::before {
-  content: "⚠ ";
+  content: "âš  ";
 }
 
 table th[scope="row"] {
@@ -102,10 +102,70 @@ table caption {
   text-align: left;
   padding-bottom: 0.5rem;
 }
+.record-container { position: relative; }
+.record-container table { border-collapse: separate; border-spacing: 0; width: 100%; }
 
-.record-context {
-  font-size: 0.50rem;        /* Smaller than default h3 */
-  font-weight: 600;          /* Slight emphasis /* Tight spacing */ 
-  line-height: 1.3;
+.record-container {
+  overflow-x: auto;
 }
+/* ============================= */
+/* ✅ HORIZONTAL TABLE (smaller columns) */
+/* ============================= */
+
+/* Only target horizontal table using inline min-width */
+.record-container table[style*="min-width"] th,
+.record-container table[style*="min-width"] td {
+  min-width: 110px;     /* ✅ smaller width */
+  padding: 6px 8px;     /* ✅ compact */
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+/* First 3 columns */
+.record-container table[style*="min-width"] th:nth-child(1),
+.record-container table[style*="min-width"] td:nth-child(1) {
+  min-width: 70px;
+}
+
+.record-container table[style*="min-width"] th:nth-child(2),
+.record-container table[style*="min-width"] td:nth-child(2) {
+  min-width: 130px;
+}
+
+.record-container table[style*="min-width"] th:nth-child(3),
+.record-container table[style*="min-width"] td:nth-child(3) {
+  min-width: 60px;
+}
+
+
+
+/* Main vertical table (render method) */
+table[aria-labelledby="record-context"] {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Field column */
+table[aria-labelledby="record-context"] th[scope="row"] {
+  width: 28%;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+/* Value column */
+table[aria-labelledby="record-context"] td {
+  width: 72%;
+  padding: 4px 6px;
+}
+
+/* Remove extra spacing in PRE */
+table[aria-labelledby="record-context"] td pre {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+
+
+
 
