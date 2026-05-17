@@ -464,9 +464,9 @@ public class SchemaHtmlRenderer {
 
 		StringBuilder sb = new StringBuilder(8_192);
 		sb.append(
-				"<div class='table-responsive'>\n<table  aria-labelledby='record-context' class='table table-sm table-striped table-bordered'>\n");
+				"<div class='table-responsive'>\n<table id='verticalFieldsTable' data-total-fields='" + totalFields + "' aria-labelledby='record-context' class='table table-sm table-striped table-bordered'>\n");
 		sb.append(
-				"<thead><tr><th scope='col' style='white-space:nowrap'>Field</th><th scope='col'>Value</th></tr></thead><tbody>\n");
+				"<thead><tr><th scope='col' style='white-space:nowrap'>Field</th><th scope='col'>Value</th></tr></thead><tbody id='verticalFieldsBody'>\n");
 
 		if (layout == null || layout.isEmpty()) {
 			String recTypeValue = type;
@@ -555,6 +555,95 @@ public class SchemaHtmlRenderer {
 		
 		
 		sb.append("</tbody></table></div>\n");
+		return sb.toString();
+	}
+
+	public String renderVerticalFieldRows(int recordNumber1Based, int offset, int limit) {
+		RecordType rt = RecordType.from(readType(recordNumber1Based).trim());
+		List<FieldSpec> layout = SchemaRegistry.getSchema(transactionType, rt.code);
+		byte[] rec = readRecordBytes(recordNumber1Based);
+
+		if (layout == null || layout.isEmpty()) {
+			if (offset >= 2) {
+				return "";
+			}
+
+			StringBuilder sb = new StringBuilder();
+			if (offset == 0) {
+				sb.append(row("REC_TYPE", readType(recordNumber1Based).trim(), recordNumber1Based, null));
+			}
+			if (offset <= 1) {
+				sb.append(row("BYTE_LEN", String.valueOf(rec.length), recordNumber1Based, null));
+			}
+			return sb.toString();
+		}
+
+		int total = layout.size();
+		if (offset >= total) {
+			return "";
+		}
+
+		int end = Math.min(offset + limit, total);
+		StringBuilder sb = new StringBuilder();
+		for (int i = offset; i < end; i++) {
+			FieldSpec f = layout.get(i);
+			int start = f.start1Based - 1;
+			int len = f.lengthBytes;
+			String val;
+			switch (f.type) {
+			case ALPHA:
+				val = sliceTrim(rec, start, len);
+				break;
+			case NUMERIC_TEXT:
+				int lastByte = rec[start + f.lengthBytes - 1] & 0xFF;
+				int zone = (lastByte >>> 4) & 0x0F;
+				if (zone != 0xF) {
+					val = decodeZonedDecimal(rec, start, f.lengthBytes);
+				} else {
+					val = sliceTrim(rec, start, len);
+					if (val.chars().count() == 1) {
+						try {
+							val = String.valueOf(parseOverpunchIntSafe(val));
+						} catch (NullPointerException ne) {
+							val = "";
+						}
+					}
+					if (val.contains("}")) {
+						try {
+							val = String.valueOf(parseOverpunchIntSafe(val));
+						} catch (NullPointerException ne) {
+							val = "";
+						}
+					}
+					if (val.contains("{")) {
+						try {
+							val = String.valueOf(parseOverpunchIntSafe(val));
+						} catch (NullPointerException ne) {
+							val = "";
+						}
+					}
+				}
+				break;
+			case PACKED_DECIMAL:
+				try {
+					val = invokeFixed("decodeComp3ToString", rec, start, len, f.scale);
+				} catch (Exception ex) {
+					val = "";
+				}
+				break;
+			case BINARY:
+				val = invokeFixed("decodeBinary", rec, start, len, f.scale);
+				break;
+			default:
+				val = "";
+			}
+
+			Map<String, String> recordOverlay = editOverlay != null ? editOverlay.get(recordNumber1Based) : null;
+			if (recordOverlay != null && recordOverlay.containsKey(f.name)) {
+				val = recordOverlay.get(f.name);
+			}
+			sb.append(row(f.name, val, recordNumber1Based, f));
+		}
 		return sb.toString();
 	}
 
