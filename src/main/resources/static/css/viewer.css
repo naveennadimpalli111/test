@@ -165,7 +165,19 @@ table[aria-labelledby="record-context"] td pre {
   line-height: 1.2;
 }
 
+/* Validation info styles */
+.validation-info ul {
+    padding-left: 20px;
+}
 
+.validation-info li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.validation-info .card-header {
+    font-size: 16px;
+}
 
 
 

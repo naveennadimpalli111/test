@@ -1,0 +1,31 @@
+/* Validation UI styles */
+.validation-info {
+  border-left: 4px solid #0d6efd; /* bootstrap primary */
+  background: #f8f9ff;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.75rem;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.validation-info h6 {
+  margin: 0 0 0.35rem 0;
+  font-size: 14px;
+}
+.validation-info ul { margin: 0; padding-left: 1.2rem; }
+.validation-icon {
+  display: inline-block;
+  width: 18px; height: 18px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.val-icon {
+  display:inline-block;
+  width:18px;height:18px;margin-left:8px;vertical-align:middle;color:#dc3545;font-weight:700;
+}
+/* small red circle with exclamation */
+.val-icon::before {
+  content: "\26A0"; /* warning sign */
+  color: #dc3545;
+}
+.non-editable-by-type { opacity: 0.6; }
+.invalid-feedback { font-size: 12px; }

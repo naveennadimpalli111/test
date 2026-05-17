@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.its255.constants.FileViewerConstants;
 import com.its255.schema.FieldSpec;
+import com.its255.schema.FieldType;
 import com.its255.schema.RecordType;
 import com.its255.schema.SchemaRegistry;
 
@@ -65,9 +66,20 @@ public class SchemaHtmlRenderer {
 				String val = "";
 				switch (f.type) {
 				case ALPHA:
+				// case NUMERIC_TEXT:
+				// 	val = sliceTrim(rec, start, len);
+				// 	break;
 				case NUMERIC_TEXT:
-					val = sliceTrim(rec, start, len);
-					break;
+
+    val = sliceTrim(rec, start, len);
+
+    Integer parsed = parseOverpunchIntSafe(val);
+
+    if (parsed != null) {
+        val = String.valueOf(parsed);
+    }
+
+    break;
 				case PACKED_DECIMAL:
 					val = invokeFixed("decodeComp3ToString", rec, start, len, f.scale);
 					break;
@@ -76,7 +88,45 @@ public class SchemaHtmlRenderer {
 				}
 				sb.append("<tr>");
 				sb.append("<td>").append(escape(f.name)).append("</td>");
-				sb.append("<td>").append(escape(val)).append("</tr>");
+				sb.append("<td>");
+				//boolean editable = editMode && !List.of("SCCF", "REC_TYPE").contains(f.name);
+// 				boolean nonEditableType =
+//         f.type == FieldType.PACKED_DECIMAL ||
+//         f.type == FieldType.BINARY;
+
+// boolean editable =
+//         editMode &&
+//         !List.of("SCCF", "REC_TYPE").contains(f.name) &&
+//         !nonEditableType;
+
+// if (editable) {
+// 				if (editable) {
+boolean nonEditableType =
+        f.type == FieldType.PACKED_DECIMAL ||
+        f.type == FieldType.BINARY;
+
+boolean editable =
+        editMode &&
+        !List.of("SCCF", "REC_TYPE").contains(f.name) &&
+        !nonEditableType;
+
+if (editable) {
+					sb.append("<input type='text'")
+						.append(" class='form-control form-control-sm editable-field'")
+						.append(" name='field_").append(recordNo).append("_").append(f.name).append("'")
+						.append(" value='").append(escape(val)).append("'")
+						.append(" maxlength='").append(f.lengthBytes).append("'")
+						.append(" data-ftype='").append(f.type.name()).append("'")
+						.append(" data-flen='").append(f.lengthBytes).append("'")
+						.append(" data-fscale='").append(f.scale).append("'")
+						.append(f.type == com.its255.schema.FieldType.NUMERIC_TEXT ? " inputmode='numeric'" : "")
+						.append("/>")
+						.append("<div class='invalid-feedback' style='display:none;'></div>");
+				} else {
+					sb.append("<pre style='margin:0'>").append(escape(val)).append("</pre>");
+				}
+				sb.append("</td>");
+				sb.append("</tr>");
 			}
 		}
 		sb.append("</tbody>");
@@ -84,7 +134,9 @@ public class SchemaHtmlRenderer {
 		sb.append("</div>");
 		
 		 return sb.toString(); 
-	}
+	
+		
+}
 	/*
 	 * public String renderVerticalPage( HttpSession session,String selectedType,int
 	 * offset,int limit){ ViewerSession
@@ -212,23 +264,31 @@ public class SchemaHtmlRenderer {
 						}
 
 						/* sb.append("<td>").append(escape(val)).append("</td>"); */
-						boolean editable = editMode && !List.of("SCCF", "REC_TYPE").contains(f.name);
+						//boolean editable = editMode && !List.of("SCCF", "REC_TYPE").contains(f.name);
+						boolean nonEditableType =
+        f.type == FieldType.PACKED_DECIMAL ||
+        f.type == FieldType.BINARY;
+
+boolean editable =
+        editMode &&
+        !List.of("SCCF", "REC_TYPE").contains(f.name) &&
+        !nonEditableType;
 
 						sb.append("<td>");
 
-						if (editMode) {
-							sb.append("<input type='text'")
-									.append(" class='form-control form-control-sm editable-field'")
-									/*
-									 * .append(" name='field_").append(recordNo).append("_").append(escape(f.name))
-									 */
-
-									.append(" name='field_").append(recordNo).append("_").append(f.name) // ✅ no escape
-																											// here
-									.append("' ")
-
-									.append("' ").append(" value='").append(escape(val)).append("' ")
-									.append(" maxlength='").append(f.lengthBytes).append("'/>");
+						if (editable) {
+							 sb.append("<input type='text'")
+								.append(" class='form-control form-control-sm editable-field'")
+								.append(" name='field_").append(recordNo).append("_").append(f.name)
+								.append("' ")
+								.append(" value='").append(escape(val)).append("' ")
+								.append(" maxlength='").append(f.lengthBytes).append("'")
+								.append(" data-ftype='").append(f.type.name()).append("'")
+								.append(" data-flen='").append(f.lengthBytes).append("'")
+								.append(" data-fscale='").append(f.scale).append("'")
+								.append(f.type == com.its255.schema.FieldType.NUMERIC_TEXT ? " inputmode='numeric'" : "")
+								.append("/>")
+								.append("<div class='invalid-feedback' style='display:none;'></div>");
 						} else {
 							sb.append(escape(val));
 						}
@@ -463,8 +523,9 @@ public class SchemaHtmlRenderer {
 		byte[] rec = readRecordBytes(recordNumber1Based);
 
 		StringBuilder sb = new StringBuilder(8_192);
+		int totalFields = (layout == null || layout.isEmpty()) ? 2 : layout.size();
 		sb.append(
-				"<div class='table-responsive'>\n<table id='verticalFieldsTable' data-total-fields='" + totalFields + "' aria-labelledby='record-context' class='table table-sm table-striped table-bordered'>\n");
+					"<div class='table-responsive'>\n<table id='verticalFieldsTable' data-total-fields='" + totalFields + "' aria-labelledby='record-context' class='table table-sm table-striped table-bordered'>\n");
 		sb.append(
 				"<thead><tr><th scope='col' style='white-space:nowrap'>Field</th><th scope='col'>Value</th></tr></thead><tbody id='verticalFieldsBody'>\n");
 
