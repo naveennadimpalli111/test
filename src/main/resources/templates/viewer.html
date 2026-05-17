@@ -356,12 +356,81 @@
 
  <a class="btn btn-primary mt-2" th:if="${editMode!=true}"
  th:href="@{/viewer/edit}">Edit</a>
-  <button class="btn btn-success mt-2" type="submit" th:if="${editMode==true}">Save</button>
+  <button id="btnSave" class="btn btn-success mt-2" type="submit" th:if="${editMode==true}">Save</button>
   <a class="btn btn-secondary mt-2" th:if="${editMode==true}"
  th:href="@{/viewer/view}">Cancel</a>
   
   </form>
 
+  <!-- Validation info (edit mode) -->
+ <!-- <div th:if="${editMode==true}" class="validation-info"> 
+    <h6>Validation / Constraints <span class="validation-icon"> </span></h6>
+    <ul>
+      <li>Basic validation only: field length and basic data type</li>
+      <li>Exact 255-byte record length not changed by edits</li>
+      <li>No business-rule validation</li>
+      <li>Invalid edits are blocked with inline messages and icons</li>
+    </ul>
+  </div> -->
+<!-- Validation info (edit mode) -->
+<div th:if="${editMode==true}" class="card mt-3 shadow-sm validation-info">
+
+    <div class="card-header fw-bold">
+        Validation / Constraints
+    </div>
+
+    <div class="card-body">
+
+        <ul class="mb-0">
+
+            <li>Basic validation only</li>
+
+            <li>Schema boundaries</li>
+
+            <li>Field length</li>
+
+            <li>Basic data type (numeric / alphanumeric)</li>
+
+            <li>Exact 255-byte record length</li>
+
+            <li>No business rule validation</li>
+
+            <li>
+                Invalid edits are blocked with inline messages
+                <ul>
+                    <li>
+                        Fields require valid values
+                        (alpha, numeric, packed decimal, binary)
+                    </li>
+
+                    <li>
+                        Error shown if field type is invalid
+                    </li>
+                </ul>
+            </li>
+
+            <li>
+                Save button automatically exports to local download folder
+            </li>
+
+            <li>
+                Non Editable Fields
+                <ul>
+                    <li>
+                        Record type, row number, SCCF id — header
+                    </li>
+
+                    <li>
+                        Sequence number, record type — below (for now)
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+
+    </div>
+
+</div>
   <!-- ========== NAVIGATION ROW — BOTTOM (mirrors top) ========== -->
   <!-- NAV FIX: hide nav if there are no results -->
   <!-- <div class="nav-row mt-3" th:if="${hasFile} and ${count} > 0"> -->
@@ -379,6 +448,7 @@
  
 </main>
 <!-- App JS -->
+ <link rel="stylesheet" th:href="@{/css/validation.css}" href="/css/validation.css" />
  <script th:src="@{/js/viewer.js}"  src="/js/viewer.js" defer></script>
 <!-- <script th:inline="javascript">
   document.addEventListener("DOMContentLoaded", function () {
@@ -597,6 +667,8 @@ function loadMoreRecords(viewType) {
 
                 verticalOffset += limit;
                 verticalLoading = false;
+              // Reapply client-side type restriction for newly added rows
+              try { window.restrictByFirstFieldType && window.restrictByFirstFieldType(); } catch(_) {}
 
             } else {
 
@@ -609,6 +681,8 @@ function loadMoreRecords(viewType) {
                     const rows = temp.querySelectorAll("tr");
 
                     rows.forEach(row => tbody.appendChild(row));
+                    // Reapply client-side type restriction for newly added rows
+                    try { window.restrictByFirstFieldType && window.restrictByFirstFieldType(); } catch(_) {}
                 }
 
                 horizontalOffset += limit;

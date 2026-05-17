@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.its255.constants.FileViewerConstants;
 import com.its255.schema.FieldSpec;
+import com.its255.schema.FieldType;
 import com.its255.schema.RecordType;
 import com.its255.schema.SchemaRegistry;
 
@@ -65,9 +66,20 @@ public class SchemaHtmlRenderer {
 				String val = "";
 				switch (f.type) {
 				case ALPHA:
+				// case NUMERIC_TEXT:
+				// 	val = sliceTrim(rec, start, len);
+				// 	break;
 				case NUMERIC_TEXT:
-					val = sliceTrim(rec, start, len);
-					break;
+
+    val = sliceTrim(rec, start, len);
+
+    Integer parsed = parseOverpunchIntSafe(val);
+
+    if (parsed != null) {
+        val = String.valueOf(parsed);
+    }
+
+    break;
 				case PACKED_DECIMAL:
 					val = invokeFixed("decodeComp3ToString", rec, start, len, f.scale);
 					break;
@@ -76,7 +88,45 @@ public class SchemaHtmlRenderer {
 				}
 				sb.append("<tr>");
 				sb.append("<td>").append(escape(f.name)).append("</td>");
-				sb.append("<td>").append(escape(val)).append("</tr>");
+				sb.append("<td>");
+				//boolean editable = editMode && !List.of("SCCF", "REC_TYPE").contains(f.name);
+// 				boolean nonEditableType =
+//         f.type == FieldType.PACKED_DECIMAL ||
+//         f.type == FieldType.BINARY;
+
+// boolean editable =
+//         editMode &&
+//         !List.of("SCCF", "REC_TYPE").contains(f.name) &&
+//         !nonEditableType;
+
+// if (editable) {
+// 				if (editable) {
+boolean nonEditableType =
+        f.type == FieldType.PACKED_DECIMAL ||
+        f.type == FieldType.BINARY;
+
+boolean editable =
+        editMode &&
+        !List.of("SCCF", "REC_TYPE").contains(f.name) &&
+        !nonEditableType;
+
+if (editable) {
+					sb.append("<input type='text'")
+						.append(" class='form-control form-control-sm editable-field'")
+						.append(" name='field_").append(recordNo).append("_").append(f.name).append("'")
+						.append(" value='").append(escape(val)).append("'")
+						.append(" maxlength='").append(f.lengthBytes).append("'")
+						.append(" data-ftype='").append(f.type.name()).append("'")
+						.append(" data-flen='").append(f.lengthBytes).append("'")
+						.append(" data-fscale='").append(f.scale).append("'")
+						.append(f.type == com.its255.schema.FieldType.NUMERIC_TEXT ? " inputmode='numeric'" : "")
+						.append("/>")
+						.append("<div class='invalid-feedback' style='display:none;'></div>");
+				} else {
+					sb.append("<pre style='margin:0'>").append(escape(val)).append("</pre>");
+				}
+				sb.append("</td>");
+				sb.append("</tr>");
 			}
 		}
 		sb.append("</tbody>");
@@ -84,7 +134,9 @@ public class SchemaHtmlRenderer {
 		sb.append("</div>");
 		
 		 return sb.toString(); 
-	}
+	
+		
+}
 	/*
 	 * public String renderVerticalPage( HttpSession session,String selectedType,int
 	 * offset,int limit){ ViewerSession
@@ -212,23 +264,31 @@ public class SchemaHtmlRenderer {
 						}
 
 						/* sb.append("<td>").append(escape(val)).append("</td>"); */
-						boolean editable = editMode && !List.of("SCCF", "REC_TYPE").contains(f.name);
+						//boolean editable = editMode && !List.of("SCCF", "REC_TYPE").contains(f.name);
+						boolean nonEditableType =
+        f.type == FieldType.PACKED_DECIMAL ||
+        f.type == FieldType.BINARY;
+
+boolean editable =
+        editMode &&
+        !List.of("SCCF", "REC_TYPE").contains(f.name) &&
+        !nonEditableType;
 
 						sb.append("<td>");
 
-						if (editMode) {
-							sb.append("<input type='text'")
-									.append(" class='form-control form-control-sm editable-field'")
-									/*
-									 * .append(" name='field_").append(recordNo).append("_").append(escape(f.name))
-									 */
-
-									.append(" name='field_").append(recordNo).append("_").append(f.name) // ✅ no escape
-																											// here
-									.append("' ")
-
-									.append("' ").append(" value='").append(escape(val)).append("' ")
-									.append(" maxlength='").append(f.lengthBytes).append("'/>");
+						if (editable) {
+							 sb.append("<input type='text'")
+								.append(" class='form-control form-control-sm editable-field'")
+								.append(" name='field_").append(recordNo).append("_").append(f.name)
+								.append("' ")
+								.append(" value='").append(escape(val)).append("' ")
+								.append(" maxlength='").append(f.lengthBytes).append("'")
+								.append(" data-ftype='").append(f.type.name()).append("'")
+								.append(" data-flen='").append(f.lengthBytes).append("'")
+								.append(" data-fscale='").append(f.scale).append("'")
+								.append(f.type == com.its255.schema.FieldType.NUMERIC_TEXT ? " inputmode='numeric'" : "")
+								.append("/>")
+								.append("<div class='invalid-feedback' style='display:none;'></div>");
 						} else {
 							sb.append(escape(val));
 						}
@@ -463,10 +523,11 @@ public class SchemaHtmlRenderer {
 		byte[] rec = readRecordBytes(recordNumber1Based);
 
 		StringBuilder sb = new StringBuilder(8_192);
+		int totalFields = (layout == null || layout.isEmpty()) ? 2 : layout.size();
 		sb.append(
-				"<div class='table-responsive'>\n<table  aria-labelledby='record-context' class='table table-sm table-striped table-bordered'>\n");
+					"<div class='table-responsive'>\n<table id='verticalFieldsTable' data-total-fields='" + totalFields + "' aria-labelledby='record-context' class='table table-sm table-striped table-bordered'>\n");
 		sb.append(
-				"<thead><tr><th scope='col' style='white-space:nowrap'>Field</th><th scope='col'>Value</th></tr></thead><tbody>\n");
+				"<thead><tr><th scope='col' style='white-space:nowrap'>Field</th><th scope='col'>Value</th></tr></thead><tbody id='verticalFieldsBody'>\n");
 
 		if (layout == null || layout.isEmpty()) {
 			String recTypeValue = type;
@@ -555,6 +616,95 @@ public class SchemaHtmlRenderer {
 		
 		
 		sb.append("</tbody></table></div>\n");
+		return sb.toString();
+	}
+
+	public String renderVerticalFieldRows(int recordNumber1Based, int offset, int limit) {
+		RecordType rt = RecordType.from(readType(recordNumber1Based).trim());
+		List<FieldSpec> layout = SchemaRegistry.getSchema(transactionType, rt.code);
+		byte[] rec = readRecordBytes(recordNumber1Based);
+
+		if (layout == null || layout.isEmpty()) {
+			if (offset >= 2) {
+				return "";
+			}
+
+			StringBuilder sb = new StringBuilder();
+			if (offset == 0) {
+				sb.append(row("REC_TYPE", readType(recordNumber1Based).trim(), recordNumber1Based, null));
+			}
+			if (offset <= 1) {
+				sb.append(row("BYTE_LEN", String.valueOf(rec.length), recordNumber1Based, null));
+			}
+			return sb.toString();
+		}
+
+		int total = layout.size();
+		if (offset >= total) {
+			return "";
+		}
+
+		int end = Math.min(offset + limit, total);
+		StringBuilder sb = new StringBuilder();
+		for (int i = offset; i < end; i++) {
+			FieldSpec f = layout.get(i);
+			int start = f.start1Based - 1;
+			int len = f.lengthBytes;
+			String val;
+			switch (f.type) {
+			case ALPHA:
+				val = sliceTrim(rec, start, len);
+				break;
+			case NUMERIC_TEXT:
+				int lastByte = rec[start + f.lengthBytes - 1] & 0xFF;
+				int zone = (lastByte >>> 4) & 0x0F;
+				if (zone != 0xF) {
+					val = decodeZonedDecimal(rec, start, f.lengthBytes);
+				} else {
+					val = sliceTrim(rec, start, len);
+					if (val.chars().count() == 1) {
+						try {
+							val = String.valueOf(parseOverpunchIntSafe(val));
+						} catch (NullPointerException ne) {
+							val = "";
+						}
+					}
+					if (val.contains("}")) {
+						try {
+							val = String.valueOf(parseOverpunchIntSafe(val));
+						} catch (NullPointerException ne) {
+							val = "";
+						}
+					}
+					if (val.contains("{")) {
+						try {
+							val = String.valueOf(parseOverpunchIntSafe(val));
+						} catch (NullPointerException ne) {
+							val = "";
+						}
+					}
+				}
+				break;
+			case PACKED_DECIMAL:
+				try {
+					val = invokeFixed("decodeComp3ToString", rec, start, len, f.scale);
+				} catch (Exception ex) {
+					val = "";
+				}
+				break;
+			case BINARY:
+				val = invokeFixed("decodeBinary", rec, start, len, f.scale);
+				break;
+			default:
+				val = "";
+			}
+
+			Map<String, String> recordOverlay = editOverlay != null ? editOverlay.get(recordNumber1Based) : null;
+			if (recordOverlay != null && recordOverlay.containsKey(f.name)) {
+				val = recordOverlay.get(f.name);
+			}
+			sb.append(row(f.name, val, recordNumber1Based, f));
+		}
 		return sb.toString();
 	}
 
